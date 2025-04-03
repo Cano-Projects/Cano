@@ -1,8 +1,8 @@
 #ifndef COMMANDS_H
 #define COMMANDS_H
 
-#include "frontend.h"
 #include "defs.h"
+#include "frontend.h"
 
 typedef enum {
     TT_SET_VAR,
@@ -100,11 +100,13 @@ int expect_token(State *state, Command_Token token, Command_Type type);
 Node *create_node(Node_Type type, Node_Val value);
 Operator get_operator(Command_Token token);
 int get_special_char(String_View view);
-Bin_Expr *parse_bin_expr(State *state, Command_Token *command, size_t command_s);
+Bin_Expr *parse_bin_expr(State *state, Command_Token *command,
+                         size_t command_s);
 Node *parse_command(State *state, Command_Token *command, size_t command_s);
 int interpret_expr(Bin_Expr *expr);
 void interpret_command(Buffer *buffer, State *state, Node *root);
 void print_tree(Node *node, size_t depth);
-int execute_command(Buffer *buffer, State *state, Command_Token *command, size_t command_s);
+int execute_command(Buffer *buffer, State *state, Command_Token *command,
+                    size_t command_s);
 
 #endif // COMMANDS_H
