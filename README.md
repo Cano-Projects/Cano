@@ -1,7 +1,7 @@
 # Cano
 Cano (kay-no) is a VIM inspired modal-based text editor written in C using the [ncurses](https://opensource.apple.com/source/old_ncurses/old_ncurses-1/ncurses/test/ncurses.c.auto.html) library. 
 
-![Cano icon](cano.png) \
+![Cano icon](assets/cano.png) \
 Icon made by [LocalTexan](https://github.com/LocalTexan)
 
 # Demo
@@ -10,31 +10,24 @@ Icon made by [LocalTexan](https://github.com/LocalTexan)
 ## Quick Start
 Cano has the following dependencies:
 - [GCC](https://gcc.gnu.org/)
-- [Make](https://www.gnu.org/software/make/)
 - [ncurses](https://opensource.apple.com/source/old_ncurses/old_ncurses-1/ncurses/test/ncurses.c.auto.html)
-- [Autotools](https://en.wikipedia.org/wiki/GNU_Autotools)
 
 1. Navigate to the Cano directory
 ```sh
 cd path/to/cano
 ```
 
-2. Make the generator script executable
+2. Bootstrap nobuild
 ```sh
-chmod +x autogen.sh
+cc nob.c -o nob
 ```
 
-3. Run the generator script
+3. Build cano
 ```sh
-./autogen.sh
+./nob
 ```
 
 The build files will be stored at `path/to/cano/build`.
-
-4. Compile cano
-```sh
-make -C build
-```
 
 5. Run cano
 ```sh
@@ -186,15 +179,13 @@ Cano's build system recently changed, Nix installation is not supported for now.
 
 ## Debian/Ubuntu
 
-You may build from source and install cano directly to `/usr/local/bin`. You must have a basic C compiler, autotools, pkg-config and the ncurses library installed (install shown below).
+You may build from source and install cano directly to `/usr/local/bin`. You must have a basic C compiler and the ncurses library installed (install shown below).
 
 ```sh
-sudo apt install gcc autoconf automake libtool pkg-config make libncurses-dev
+sudo apt install gcc libncurses-dev
 git clone https://github.com/CobbCoding1/Cano && cd Cano
-chmod +x autogen.sh && ./autogen.sh
-cd build
-make
-sudo make install
+gcc nob.c -o nob
+sudo ./nob --install
 ```
 
 ## Canoon (Beta)
