@@ -1,5 +1,12 @@
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "buffer.h"
+#include "frontend.h" // IWYU pragma: keep, needed for defs.h macros (CRASH, ...)
+#include "keys.h"
 #include "main.h"
+#include "tools.h"
 
 // updates the rows to be consistent with the buffer data
 void buffer_calculate_rows(Buffer *buffer) {

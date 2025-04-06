@@ -1,10 +1,7 @@
 #ifndef KEYS_H
 #define KEYS_H
 
-#include "buffer.h"
 #include "defs.h"
-#include "frontend.h"
-#include "tools.h"
 
 void handle_move_left(State *state, size_t num);
 void handle_move_right(State *state, size_t num);

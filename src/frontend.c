@@ -1,9 +1,13 @@
+#include <ncurses.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "buffer.h"
+#include "colors.h"
 #include "frontend.h"
+#include "lex.h"
 #include "tools.h"
 
 size_t num_of_open_braces(Buffer *buffer) {
@@ -253,7 +257,7 @@ void frontend_resize_window(State *state) {
     wrefresh(state->main_win);
 }
 
-void frontend_end() {
+void frontend_end(void) {
     printf("\x1b[\x30 q");
     wrefresh(stdscr);
     endwin();

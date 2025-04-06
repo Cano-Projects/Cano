@@ -13,10 +13,11 @@
 #define COMPILER_PATH "cc"
 #define MAX_STR_LEN 512
 
-int compile_flags_len = 4;
+int compile_flags_len = 6;
 // pre-allocate more elements in order to append at runtime
-static char *compile_flags[] = {"-Wall",      "-Wextra", "-pedantic",
-                                "-Wpedantic", "-O3",     ""};
+static char *compile_flags[] = {
+    "-Wall",      "-Wextra",   "-pedantic", "-Wpedantic",
+    "-std=gnu11", "-Ilua/src", "-O3",       ""};
 
 #define FILES_LEN 9
 static char *source_files[FILES_LEN] = {
@@ -33,8 +34,8 @@ static char *out_files[FILES_LEN] = {
     BUILD_FOLDER "tools.o",
 };
 
-#define LIBRARIES_LEN 2
-static char *libraries[LIBRARIES_LEN] = {"-lm", "-lncurses"};
+#define LIBRARIES_LEN 4
+static char *libraries[LIBRARIES_LEN] = {"-lm", "-lncurses", "-Llua", "-llua"};
 
 void append_compile_flags(Cmd *cmd) {
     for (int i = 0; i < compile_flags_len; i++) {
@@ -97,6 +98,10 @@ int main(int argc, char **argv) {
         if (!cmd_run_sync_and_reset(&cmd))
             return 1;
 
+        cmd_append(&cmd, "make", "-C", "lua", "clean");
+        if (!cmd_run_sync_and_reset(&cmd))
+            return 1;
+
         if (install) {
             cmd_append(&cmd, "rm", "-r", helpdir);
             if (!cmd_run_sync_and_reset(&cmd))
@@ -124,6 +129,10 @@ int main(int argc, char **argv) {
     }
 
     if (!procs_wait_and_reset(&procs))
+        return 1;
+
+    cmd_append(&cmd, "make", "-C", "lua");
+    if (!cmd_run_sync_and_reset(&cmd))
         return 1;
 
     cmd_append(&link_cmd, "-o", BUILD_FOLDER BINARY_NAME);

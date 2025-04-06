@@ -1,8 +1,8 @@
 #ifndef DEFS_H
 #define DEFS_H
 
-#include <ctype.h>
 #include <ncurses.h>
+#include <stdlib.h>
 
 #include "view.h"
 

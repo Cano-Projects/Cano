@@ -2,7 +2,6 @@
 #define COMMANDS_H
 
 #include "defs.h"
-#include "frontend.h"
 
 typedef enum {
     TT_SET_VAR,

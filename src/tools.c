@@ -1,8 +1,13 @@
 #include <dirent.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 
 #include "buffer.h"
+#include "colors.h"
 #include "commands.h"
+#include "frontend.h" // IWYU pragma: keep, needed for defs.h macros (CRASH, ...)
+#include "lex.h"
 #include "tools.h"
 
 typedef int (*__compar_fn_t)(const void *, const void *);

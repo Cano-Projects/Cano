@@ -1,9 +1,12 @@
-#include "commands.h"
-#include "tools.h"
-
 #include <assert.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "commands.h"
+#include "frontend.h" // IWYU pragma: keep, needed for defs.h macros (CRASH, ...)
+#include "tools.h"
 
 static char *tt_string[TT_COUNT] = {
     "set_var", "set_output",  "set_map", "let",        "plus", "minus",

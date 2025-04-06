@@ -1,9 +1,7 @@
 #ifndef TOOLS_H
 #define TOOLS_H
 
-#include "colors.h"
 #include "defs.h"
-#include "lex.h"
 
 Data dynstr_to_data(Sized_Str str);
 void handle_cursor_shape(State *state);

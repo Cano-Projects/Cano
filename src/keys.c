@@ -1,5 +1,12 @@
+#include <ctype.h>
+#include <string.h>
+
+#include "buffer.h"
+#include "commands.h"
+#include "frontend.h"
 #include "keys.h"
 #include "main.h"
+#include "tools.h"
 
 size_t search(Buffer *buffer, char *command, size_t command_s) {
     for (size_t i = buffer->cursor + 1; i < buffer->data.count + buffer->cursor;
@@ -43,7 +50,7 @@ void find_and_replace(Buffer *buffer, State *state, char *old_str,
     }
 }
 
-void motion_g(State *state) {
+static void motion_g(State *state) {
     size_t row = buffer_get_row(state->buffer);
     if (state->repeating.repeating_count >= state->buffer->rows.count)
         state->repeating.repeating_count = state->buffer->rows.count;
@@ -62,7 +69,7 @@ void motion_g(State *state) {
     undo_push(state, &state->undo_stack, state->cur_undo);
 }
 
-void motion_G(State *state) {
+static void motion_G(State *state) {
     size_t row = buffer_get_row(state->buffer);
     size_t start = state->buffer->rows.data[row].start;
     if (state->repeating.repeating_count > 0) {
@@ -84,7 +91,7 @@ void motion_G(State *state) {
     undo_push(state, &state->undo_stack, state->cur_undo);
 }
 
-void motion_0(State *state) {
+static void motion_0(State *state) {
     size_t row = buffer_get_row(state->buffer);
     size_t end = state->buffer->cursor;
     state->buffer->cursor = state->buffer->rows.data[row].start;
@@ -96,7 +103,7 @@ void motion_0(State *state) {
     undo_push(state, &state->undo_stack, state->cur_undo);
 }
 
-void motion_$(State *state) {
+static void motion_dollar(State *state) {
     size_t row = buffer_get_row(state->buffer);
     size_t start = state->buffer->cursor;
     state->buffer->cursor = state->buffer->rows.data[row].end;
@@ -108,7 +115,7 @@ void motion_$(State *state) {
     undo_push(state, &state->undo_stack, state->cur_undo);
 }
 
-void motion_e(State *state) {
+static void motion_e(State *state) {
     size_t start = state->buffer->cursor;
     if (state->buffer->cursor + 1 < state->buffer->data.count &&
         !isword(state->buffer->data.data[state->buffer->cursor + 1]))
@@ -126,7 +133,7 @@ void motion_e(State *state) {
     undo_push(state, &state->undo_stack, state->cur_undo);
 }
 
-void motion_b(State *state) {
+static void motion_b(State *state) {
     Buffer *buffer = state->buffer;
     if (buffer->cursor == 0)
         return;
@@ -149,7 +156,7 @@ void motion_b(State *state) {
     undo_push(state, &state->undo_stack, state->cur_undo);
 }
 
-void motion_w(State *state) {
+static void motion_w(State *state) {
     Buffer *buffer = state->buffer;
     size_t start = buffer->cursor;
     while (buffer->cursor < buffer->data.count &&
@@ -183,7 +190,7 @@ int handle_motion_keys(Buffer *buffer, State *state, int ch,
         motion_0(state);
     } break;
     case '$': { // Move to the end of the line
-        motion_$(state);
+        motion_dollar(state);
     } break;
     case 'e': { // Move to the end of the next word
         motion_e(state);

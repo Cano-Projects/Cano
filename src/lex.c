@@ -1,5 +1,8 @@
-#include "lex.h"
+#include <ctype.h>
+
 #include "defs.h"
+#include "frontend.h" // IWYU pragma: keep, needed for defs.h macros (CRASH, ...)
+#include "lex.h"
 
 static char *types_old[] = {
     "char", "double", "float", "int", "long", "short", "void", "size_t",
@@ -62,7 +65,7 @@ size_t read_file_to_str(char *filename, char **contents) {
     *contents = malloc(sizeof(char) * length + 1);
     fread(*contents, 1, length, file);
     fclose(file);
-    contents[length] = '\0';
+    *contents[length] = '\0';
     return length;
 }
 
@@ -235,7 +238,6 @@ Token generate_word(String_View *view, char *contents) {
     } else {
         return (Token){.type = Type_Word, .index = index, .size = word_s};
     }
-    return (Token){Type_None};
 }
 
 size_t generate_tokens(char *line, size_t line_s, Token *token_arr,

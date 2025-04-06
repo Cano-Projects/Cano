@@ -1,4 +1,19 @@
+#include <assert.h>
+#include <dirent.h>
+#include <locale.h>
+#include <pthread.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include "buffer.h"
+#include "cgetopt.h"
+#include "defs.h"
+#include "frontend.h"
+#include "keys.h"
 #include "main.h"
+#include "tools.h"
 
 char *string_modes[MODE_COUNT] = {"NORMAL", "INSERT", "SEARCH", "COMMAND",
                                   "VISUAL"};

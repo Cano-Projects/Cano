@@ -5,3 +5,7 @@ build/
 compile_commands.json
 nob
 nob.old
+*.o
+lua/src/lua
+lua/src/luac
+lua/src/liblua.a

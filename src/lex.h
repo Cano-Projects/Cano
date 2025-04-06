@@ -7,7 +7,6 @@
 #include <string.h>
 
 #include "colors.h"
-#include "frontend.h"
 #include "view.h"
 
 typedef enum {
