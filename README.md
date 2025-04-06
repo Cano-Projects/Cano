@@ -118,16 +118,32 @@ There are a couple special keys for the key remaps.
 | \<ctrl-t>    |
 
 ## Config file
-The config file is stored in ~/.config/cano/config.cano by default, or can be set at runtime like so:
+The config file is stored in ~/.config/cano/init.lua by default, or can be set at runtime like so:
 ```sh
 ./cano --config <config_file>
 ```
 
-The format of the file is the same as commands, it is line separated, which is important.
-Example:
-```sh
-set-var syntax 1 
-set-var indent 2 
+The `init.lua` is the entrypoint of your cano configuration.
+You need to call the setup() function in order to make changes to the default configuration.
+Cano will setup the following default configuration for you if you decide not to configure anything by yourself.
+
+```lua
+setup({
+	syntax = true, -- toggle syntax highlighting on-off
+	auto_indent = true, -- toggle auto indentation on-off
+	relative = true, -- toggle relative line numbers
+	indent = 0, -- set indent (value of 0 stands for 1 Tab)
+	undo_size = 16, -- size of undo history
+})
+```
+
+The first parameter of the setup() function must be a table.
+You are free to decide which of the settings above you want to change.
+The settings that you don't provide will remain with their default value.
+
+Therefore, it is also perfectly valid to call setup() with an empty table:
+```lua
+setup({})
 ```
 
 There is a secondary config file, which is for custom syntax highlighting. It is stored in the same folder as the regular config, but uses a different naming format.
@@ -153,6 +169,11 @@ The type is then followed by the RGB values, all comma separated <b>without</b> 
 If you wish to only set the color, you can provide no keywords to any, and it will fill in the keywords with C keywords by default.
 
 ## Config Variables
+Config variables can also be modified at runtime by using `:ser-var ...`.
+For now, the names of runtime config variables slightly differ from
+the names you would specify in your `init.lua`.
+This will most likely change soon.
+
 ```sh
 relative # toggle relative line numbers
 auto-indent # toggle auto indentation on-off

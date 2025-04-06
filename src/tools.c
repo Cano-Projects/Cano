@@ -3,6 +3,9 @@
 #include <string.h>
 #include <sys/stat.h>
 
+#include <lauxlib.h>
+#include <lualib.h>
+
 #include "buffer.h"
 #include "colors.h"
 #include "commands.h"
@@ -198,6 +201,69 @@ void free_files(Files **files) {
     free(*files);
 }
 
+static void get_table_value(lua_State *l_state, const char *name) {
+    lua_pushstring(l_state, name);
+    ASSERT(lua_type(l_state, -2) == LUA_TTABLE,
+           "Config error: The setup() function must be called with an "
+           "configuration table!");
+    lua_gettable(l_state, -2);
+}
+
+static int lua_func_setup(lua_State *l_state) {
+    State *state = lua_touserdata(l_state, lua_upvalueindex(1));
+
+    get_table_value(l_state, "syntax");
+    if (lua_isboolean(l_state, -1)) {
+        state->config.syntax = lua_toboolean(l_state, -1);
+    } else {
+        WRITE_LOG(
+            "Config: The 'syntax' option was not specified, defaulting to: %d",
+            state->config.syntax);
+    }
+    lua_pop(l_state, 1);
+
+    get_table_value(l_state, "auto_indent");
+    if (lua_isboolean(l_state, -1)) {
+        state->config.auto_indent = lua_toboolean(l_state, -1);
+    } else {
+        WRITE_LOG("Config: The 'auto_indent' option was not specified, "
+                  "defaulting to: %d",
+                  state->config.auto_indent);
+    }
+    lua_pop(l_state, 1);
+
+    get_table_value(l_state, "relative");
+    if (lua_isboolean(l_state, -1)) {
+        state->config.relative_nums = lua_toboolean(l_state, -1);
+    } else {
+        WRITE_LOG("Config: The 'relative' option was not specified, "
+                  "defaulting to: %d",
+                  state->config.relative_nums);
+    }
+    lua_pop(l_state, 1);
+
+    get_table_value(l_state, "indent");
+    if (lua_isinteger(l_state, -1)) {
+        state->config.indent = lua_tointeger(l_state, -1);
+    } else {
+        WRITE_LOG("Config: The 'indent' option was not specified, "
+                  "defaulting to: %d",
+                  state->config.indent);
+    }
+    lua_pop(l_state, 1);
+
+    get_table_value(l_state, "undo_size");
+    if (lua_isinteger(l_state, -1)) {
+        state->config.undo_size = lua_tointeger(l_state, -1);
+    } else {
+        WRITE_LOG("Config: The 'undo_size' option was not specified, "
+                  "defaulting to: %d",
+                  state->config.undo_size);
+    }
+    lua_pop(l_state, 1);
+    return 0;
+}
+
 // TODO: breaks when a config is already loaded
 void load_config_from_file(State *state, Buffer *buffer, char *config_filename,
                            char *syntax_filename) {
@@ -220,7 +286,7 @@ void load_config_from_file(State *state, Buffer *buffer, char *config_filename,
         if (!S_ISDIR(st.st_mode))
             CRASH("a file conflict with the config directory.");
 
-        asprintf(&config_filename, "%s/config.cano", config_dir);
+        asprintf(&config_filename, "%s/init.lua", config_dir);
 
         char *language =
             strip_off_dot(buffer->filename, strlen(buffer->filename));
@@ -229,19 +295,21 @@ void load_config_from_file(State *state, Buffer *buffer, char *config_filename,
             free(language);
         }
     }
-    char **lines = calloc(2, sizeof(char *));
-    size_t lines_s = 0;
-    int err = read_file_by_lines(config_filename, &lines, &lines_s);
-    if (err == 0) {
-        for (size_t i = 0; i < lines_s; i++) {
-            size_t cmd_s = 0;
-            Command_Token *cmd = lex_command(
-                state, view_create(lines[i], strlen(lines[i])), &cmd_s);
-            execute_command(buffer, state, cmd, cmd_s);
-            free(lines[i]);
-        }
+
+    lua_State *l_state = luaL_newstate();
+    if (l_state == NULL) {
+        CRASH("could not initialize lua_State");
     }
-    free(lines);
+
+    luaL_openlibs(l_state);
+
+    lua_pushlightuserdata(l_state, state);
+    lua_pushcclosure(l_state, lua_func_setup, 1);
+    lua_setglobal(l_state, "setup");
+
+    ASSERT(luaL_dofile(l_state, config_filename) == LUA_OK,
+           "Failed to apply configuration: %s", lua_tostring(l_state, -1));
+    lua_close(l_state);
 
     if (syntax_filename != NULL) {
         Color_Arr color_arr = parse_syntax_file(syntax_filename);
