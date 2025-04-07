@@ -3,9 +3,6 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#include <lauxlib.h>
-#include <lualib.h>
-
 #include "api.h"
 #include "buffer.h"
 #include "colors.h"
