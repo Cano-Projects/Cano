@@ -19,11 +19,12 @@ static char *compile_flags[] = {
     "-Wall",      "-Wextra",   "-pedantic", "-Wpedantic",
     "-std=gnu11", "-Ilua/src", "-O3",       ""};
 
-#define FILES_LEN 9
+#define FILES_LEN 10
 static char *source_files[FILES_LEN] = {
     SRC_FOLDER "commands.c", SRC_FOLDER "lex.c",     SRC_FOLDER "view.c",
     SRC_FOLDER "main.c",     SRC_FOLDER "cgetopt.c", SRC_FOLDER "frontend.c",
-    SRC_FOLDER "keys.c",     SRC_FOLDER "buffer.c",  SRC_FOLDER "tools.c",
+    SRC_FOLDER "keys.c",     SRC_FOLDER "buffer.c",  SRC_FOLDER "api.c",
+    SRC_FOLDER "tools.c",
 };
 
 static char *out_files[FILES_LEN] = {
@@ -31,7 +32,7 @@ static char *out_files[FILES_LEN] = {
     BUILD_FOLDER "view.o",     BUILD_FOLDER "main.o",
     BUILD_FOLDER "cgetopt.o",  BUILD_FOLDER "frontend.o",
     BUILD_FOLDER "keys.o",     BUILD_FOLDER "buffer.o",
-    BUILD_FOLDER "tools.o",
+    BUILD_FOLDER "api.o",      BUILD_FOLDER "tools.o",
 };
 
 #define LIBRARIES_LEN 4
