@@ -146,6 +146,27 @@ Therefore, it is also perfectly valid to call setup() with an empty table:
 setup({})
 ```
 
+There is also a way to interact with cano from your configuration.
+The setup() function returns a table of functions you can use to do so.
+```lua
+local cano = setup({
+	syntax = true, -- toggle syntax highlighting on-off
+	auto_indent = true, -- toggle auto indentation on-off
+	relative = true, -- toggle relative line numbers
+	indent = 0, -- set indent (value of 0 stands for 1 Tab)
+	undo_size = 16, -- size of undo history
+})
+
+cano.exit(42, "Yoo")
+```
+
+The following functions are available:
+```lua
+---@param code The return code of cano on exit
+---@param message This message will get printed on exit
+function exit(code, message) end
+```
+
 There is a secondary config file, which is for custom syntax highlighting. It is stored in the same folder as the regular config, but uses a different naming format.
 An example is ~/.config/cano/c.cyntax (spelled cyntax, with a c). The c can be replaced with whatever the file extension of your language is, such as go.cyntax for Golang.
 Here is an example of a cyntax file:
