@@ -65,7 +65,7 @@ size_t read_file_to_str(char *filename, char **contents) {
     *contents = malloc(sizeof(char) * length + 1);
     fread(*contents, 1, length, file);
     fclose(file);
-    *contents[length] = '\0';
+    contents[length] = '\0';
     return length;
 }
 

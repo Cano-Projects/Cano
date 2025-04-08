@@ -36,7 +36,8 @@ static char *out_files[FILES_LEN] = {
 };
 
 #define LIBRARIES_LEN 4
-static char *libraries[LIBRARIES_LEN] = {"-lm", "-lncurses", "-Llua", "-llua"};
+static char *libraries[LIBRARIES_LEN] = {"-lm", "-lncurses", "-L./lua/src",
+                                         "-llua"};
 
 void append_compile_flags(Cmd *cmd) {
     for (int i = 0; i < compile_flags_len; i++) {
