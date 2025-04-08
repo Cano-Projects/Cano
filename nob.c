@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
     bool install = false;
     bool debug = false;
     bool clean = false;
-    char prefix[MAX_STR_LEN] = "/usr";
+    char prefix[MAX_STR_LEN] = "";
     for (int i = 1; i < argc; i++) {
         if (strncmp(argv[i], "--prefix", 8) == 0) {
             if (argc >= i + 1) {
@@ -62,9 +62,8 @@ int main(int argc, char **argv) {
         } else if (strncmp(argv[i], "--clean", 9) == 0) {
             clean = true;
         } else if (strncmp(argv[i], "--help", 6) == 0) {
-            printf("--prefix: Specify install prefix "
-                   "(default=\"/usr\")\n"
-                   "--install: Install cano to prefix directory\n"
+            printf("--prefix: Specify install prefix\n"
+                   "--install: Install cano to prefix/usr directory\n"
                    "--debug: Compile cano with debug information\n"
                    "--clean: Remove build directory and uninstall if --install "
                    "is specified\n");
@@ -79,13 +78,16 @@ int main(int argc, char **argv) {
         compile_flags_len++;
 
     char bindir[MAX_STR_LEN];
-    snprintf(bindir, MAX_STR_LEN, "%s/bin/", prefix);
+    snprintf(bindir, MAX_STR_LEN, "%s/usr/bin/", prefix);
 
     char binpath[MAX_STR_LEN];
     snprintf(binpath, MAX_STR_LEN, "%s%s", bindir, BINARY_NAME);
 
+    char canoshare[MAX_STR_LEN];
+    snprintf(canoshare, MAX_STR_LEN, "%s/usr/share/cano", prefix);
+
     char helpdir[MAX_STR_LEN];
-    snprintf(helpdir, MAX_STR_LEN, "%s/share/cano/help", prefix);
+    snprintf(helpdir, MAX_STR_LEN, "%s/usr/share/cano/help", prefix);
 
     char helpdir_flag[MAX_STR_LEN];
     snprintf(helpdir_flag, MAX_STR_LEN, "-DHELP_DIR=\"%s\"", helpdir);
@@ -105,7 +107,7 @@ int main(int argc, char **argv) {
             return 1;
 
         if (install) {
-            cmd_append(&cmd, "rm", "-r", helpdir);
+            cmd_append(&cmd, "rm", "-r", canoshare);
             if (!cmd_run_sync_and_reset(&cmd))
                 return 1;
 
@@ -145,6 +147,9 @@ int main(int argc, char **argv) {
         return 1;
 
     if (install) {
+        if (!mkdir_if_not_exists(canoshare))
+            return 1;
+
         if (!copy_directory_recursively("./docs/help/", helpdir))
             return 1;
 
