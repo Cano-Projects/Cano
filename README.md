@@ -1,7 +1,7 @@
 # Cano
 Cano (kay-no) is a VIM inspired modal-based text editor written in C using the [ncurses](https://opensource.apple.com/source/old_ncurses/old_ncurses-1/ncurses/test/ncurses.c.auto.html) library. 
 
-![Cano icon](cano.png) \
+![Cano icon](assets/cano.png) \
 Icon made by [LocalTexan](https://github.com/LocalTexan)
 
 # Demo
@@ -10,31 +10,24 @@ Icon made by [LocalTexan](https://github.com/LocalTexan)
 ## Quick Start
 Cano has the following dependencies:
 - [GCC](https://gcc.gnu.org/)
-- [Make](https://www.gnu.org/software/make/)
 - [ncurses](https://opensource.apple.com/source/old_ncurses/old_ncurses-1/ncurses/test/ncurses.c.auto.html)
-- [Autotools](https://en.wikipedia.org/wiki/GNU_Autotools)
 
 1. Navigate to the Cano directory
 ```sh
 cd path/to/cano
 ```
 
-2. Make the generator script executable
+2. Bootstrap nobuild
 ```sh
-chmod +x autogen.sh
+cc nob.c -o nob
 ```
 
-3. Run the generator script
+3. Build cano
 ```sh
-./autogen.sh
+./nob
 ```
 
 The build files will be stored at `path/to/cano/build`.
-
-4. Compile cano
-```sh
-make -C build
-```
 
 5. Run cano
 ```sh
@@ -125,16 +118,53 @@ There are a couple special keys for the key remaps.
 | \<ctrl-t>    |
 
 ## Config file
-The config file is stored in ~/.config/cano/config.cano by default, or can be set at runtime like so:
+The config file is stored in ~/.config/cano/init.lua by default, or can be set at runtime like so:
 ```sh
 ./cano --config <config_file>
 ```
 
-The format of the file is the same as commands, it is line separated, which is important.
-Example:
-```sh
-set-var syntax 1 
-set-var indent 2 
+The `init.lua` is the entrypoint of your cano configuration.
+You need to call the setup() function in order to make changes to the default configuration.
+Cano will setup the following default configuration for you if you decide not to configure anything by yourself.
+
+```lua
+setup({
+	syntax = true, -- toggle syntax highlighting on-off
+	auto_indent = true, -- toggle auto indentation on-off
+	relative = true, -- toggle relative line numbers
+	indent = 0, -- set indent (value of 0 stands for 1 Tab)
+	undo_size = 16, -- size of undo history
+})
+```
+
+The first parameter of the setup() function must be a table.
+You are free to decide which of the settings above you want to change.
+The settings that you don't provide will remain with their default value.
+
+Therefore, it is also perfectly valid to call setup() with an empty table:
+```lua
+setup({})
+```
+
+There is also a way to interact with cano from your configuration.
+The setup() function returns a table of functions you can use to do so.
+```lua
+local cano = setup({
+	syntax = true, -- toggle syntax highlighting on-off
+	auto_indent = true, -- toggle auto indentation on-off
+	relative = true, -- toggle relative line numbers
+	indent = 0, -- set indent (value of 0 stands for 1 Tab)
+	undo_size = 16, -- size of undo history
+})
+
+cano.exit(42, "Yoo")
+```
+
+The following functions are available:
+```lua
+---@param code The return code of cano on exit
+---@param message This message will get printed on exit
+function exit(code, message) end
 ```
 
 There is a secondary config file, which is for custom syntax highlighting. It is stored in the same folder as the regular config, but uses a different naming format.
@@ -160,6 +190,11 @@ The type is then followed by the RGB values, all comma separated <b>without</b> 
 If you wish to only set the color, you can provide no keywords to any, and it will fill in the keywords with C keywords by default.
 
 ## Config Variables
+Config variables can also be modified at runtime by using `:ser-var ...`.
+For now, the names of runtime config variables slightly differ from
+the names you would specify in your `init.lua`.
+This will most likely change soon.
+
 ```sh
 relative # toggle relative line numbers
 auto-indent # toggle auto indentation on-off
@@ -186,15 +221,13 @@ Cano's build system recently changed, Nix installation is not supported for now.
 
 ## Debian/Ubuntu
 
-You may build from source and install cano directly to `/usr/local/bin`. You must have a basic C compiler, autotools, pkg-config and the ncurses library installed (install shown below).
+You may build from source and install cano directly to `/usr/local/bin`. You must have a basic C compiler and the ncurses library installed (install shown below).
 
 ```sh
-sudo apt install gcc autoconf automake libtool pkg-config make libncurses-dev
+sudo apt install gcc libncurses-dev
 git clone https://github.com/CobbCoding1/Cano && cd Cano
-chmod +x autogen.sh && ./autogen.sh
-cd build
-make
-sudo make install
+gcc nob.c -o nob
+sudo ./nob --install
 ```
 
 ## Canoon (Beta)

@@ -2,8 +2,6 @@
 #define TOOLS_H
 
 #include "defs.h"
-#include "colors.h"
-#include "lex.h"
 
 Data dynstr_to_data(Sized_Str str);
 void handle_cursor_shape(State *state);
@@ -20,7 +18,8 @@ Brace find_opposite_brace(char opening);
 int check_keymaps(Buffer *buffer, State *state);
 void scan_files(State *state, char *directory);
 void free_files(Files **files);
-void load_config_from_file(State *state, Buffer *buffer, char *config_filename, char *syntax_filename);
+void load_config_from_file(State *state, Buffer *buffer, char *config_filename,
+                           char *syntax_filename);
 int contains_c_extension(const char *str);
 void *check_for_errors(void *args);
 Ncurses_Color rgb_to_ncurses(int r, int g, int b);

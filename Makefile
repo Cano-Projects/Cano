@@ -1,6 +1,3 @@
-# --- The custom cano Makefile ---
-# Cano is switching to autotools, this Makefile will no longer
-# be maintained but left right here for backwards-compatibility.
 BUILD_DIR = build
 
 CC = gcc

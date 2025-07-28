@@ -1,11 +1,17 @@
 #include <dirent.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 
+#include "api.h"
 #include "buffer.h"
+#include "colors.h"
 #include "commands.h"
+#include "frontend.h" // IWYU pragma: keep, needed for defs.h macros (CRASH, ...)
+#include "lex.h"
 #include "tools.h"
 
-typedef int(* __compar_fn_t) (const void *, const void *);
+typedef int (*__compar_fn_t)(const void *, const void *);
 
 Data dynstr_to_data(Sized_Str str) {
     return (Data){
@@ -16,21 +22,21 @@ Data dynstr_to_data(Sized_Str str) {
 }
 
 void handle_cursor_shape(State *state) {
-    switch(state->config.mode) {
-        case NORMAL:
-        case VISUAL:
-        case COMMAND:
-        case SEARCH:
-            system("echo -e -n \"\x1b[\x30 q\"");
-            wrefresh(stdscr);
-            break;
-        case INSERT:
-            system("echo -e -n \"\x1b[\x35 q\"");
-            wrefresh(stdscr);
-            break;
-        case MODE_COUNT:
-        default:
-            ASSERT(false, "unreachable");
+    switch (state->config.mode) {
+    case NORMAL:
+    case VISUAL:
+    case COMMAND:
+    case SEARCH:
+        system("echo -e -n \"\x1b[\x30 q\"");
+        wrefresh(stdscr);
+        break;
+    case INSERT:
+        system("echo -e -n \"\x1b[\x35 q\"");
+        wrefresh(stdscr);
+        break;
+    case MODE_COUNT:
+    default:
+        ASSERT(false, "unreachable");
     }
 }
 
@@ -44,9 +50,7 @@ void free_buffer(Buffer *buffer) {
     buffer->rows.capacity = 0;
 }
 
-void free_undo(Undo *undo) {
-    free(undo->data.data);
-}
+void free_undo(Undo *undo) { free(undo->data.data); }
 
 void reset_command(char *command, size_t *command_s) {
     memset(command, 0, *command_s);
@@ -54,12 +58,11 @@ void reset_command(char *command, size_t *command_s) {
 }
 
 void free_undo_stack(Undo_Stack *undo) {
-    for(size_t i = 0; i < undo->count; i++) {
+    for (size_t i = 0; i < undo->count; i++) {
         free_undo(&undo->data[i]);
     }
     free(undo->data);
 }
-
 
 void handle_save(Buffer *buffer) {
     FILE *file = fopen(buffer->filename, "w");
@@ -73,18 +76,19 @@ void handle_save(Buffer *buffer) {
 
 Buffer *load_buffer_from_file(char *filename) {
     Buffer *buffer = calloc(1, sizeof(Buffer));
-    size_t filename_s = strlen(filename)+1;
+    size_t filename_s = strlen(filename) + 1;
     buffer->filename = calloc(filename_s, sizeof(char));
     strncpy(buffer->filename, filename, filename_s);
     FILE *file = fopen(filename, "r");
-    if(file == NULL) CRASH("Could not open file");
+    if (file == NULL)
+        CRASH("Could not open file");
     fseek(file, 0, SEEK_END);
     size_t length = ftell(file);
     fseek(file, 0, SEEK_SET);
     buffer->data.count = length;
-    buffer->data.capacity = (length+1)*2;
-    buffer->data.data = calloc(buffer->data.capacity+1, sizeof(char));
-	ASSERT(buffer->data.data != NULL, "buffer allocated properly");
+    buffer->data.capacity = (length + 1) * 2;
+    buffer->data.data = calloc(buffer->data.capacity + 1, sizeof(char));
+    ASSERT(buffer->data.data != NULL, "buffer allocated properly");
     fread(buffer->data.data, length, 1, file);
     fclose(file);
     buffer_calculate_rows(buffer);
@@ -92,16 +96,16 @@ Buffer *load_buffer_from_file(char *filename) {
 }
 
 void shift_str_left(char *str, size_t *str_s, size_t index) {
-    for(size_t i = index; i < *str_s; i++) {
-        str[i] = str[i+1];
+    for (size_t i = index; i < *str_s; i++) {
+        str[i] = str[i + 1];
     }
     *str_s -= 1;
 }
 
 void shift_str_right(char *str, size_t *str_s, size_t index) {
     *str_s += 1;
-    for(size_t i = *str_s; i > index; i--) {
-        str[i] = str[i-1];
+    for (size_t i = *str_s; i > index; i--) {
+        str[i] = str[i - 1];
     }
 }
 
@@ -111,29 +115,35 @@ void undo_push(State *state, Undo_Stack *stack, Undo undo) {
 }
 
 Undo undo_pop(Undo_Stack *stack) {
-    if(stack->count <= 0) return (Undo){0};
+    if (stack->count <= 0)
+        return (Undo){0};
     return stack->data[--stack->count];
 }
 
-
 Brace find_opposite_brace(char opening) {
-    switch(opening) {
-        case '(': return (Brace){.brace = ')', .closing = 0};
-        case '{': return (Brace){.brace = '}', .closing = 0};
-        case '[': return (Brace){.brace = ']', .closing = 0};
-        case ')': return (Brace){.brace = '(', .closing = 1};
-        case '}': return (Brace){.brace = '{', .closing = 1};
-        case ']': return (Brace){.brace = '[', .closing = 1};
-		default:  return (Brace){.brace = '0'};		
+    switch (opening) {
+    case '(':
+        return (Brace){.brace = ')', .closing = 0};
+    case '{':
+        return (Brace){.brace = '}', .closing = 0};
+    case '[':
+        return (Brace){.brace = ']', .closing = 0};
+    case ')':
+        return (Brace){.brace = '(', .closing = 1};
+    case '}':
+        return (Brace){.brace = '{', .closing = 1};
+    case ']':
+        return (Brace){.brace = '[', .closing = 1};
+    default:
+        return (Brace){.brace = '0'};
     }
 }
 
-
 int check_keymaps(Buffer *buffer, State *state) {
     (void)buffer;
-    for(size_t i = 0; i < state->config.key_maps.count; i++) {
-        if(state->ch == state->config.key_maps.data[i].a) {
-            for(size_t j = 0; j < state->config.key_maps.data[i].b_s; j++) {
+    for (size_t i = 0; i < state->config.key_maps.count; i++) {
+        if (state->ch == state->config.key_maps.data[i].a) {
+            for (size_t j = 0; j < state->config.key_maps.data[i].b_s; j++) {
                 state->ch = state->config.key_maps.data[i].b[j];
                 state->key_func[state->config.mode](buffer, &buffer, state);
             }
@@ -149,15 +159,16 @@ int compare_name(File const *leftp, File const *rightp) {
 
 void scan_files(State *state, char *directory) {
     DIR *dp = opendir(directory);
-    if(dp == NULL) {
+    if (dp == NULL) {
         WRITE_LOG("Failed to open directory: %s\n", directory);
         CRASH("Failed to open directory");
     }
 
     struct dirent *dent;
-    while((dent = readdir(dp)) != NULL) {
+    while ((dent = readdir(dp)) != NULL) {
         // Do not ignore .. in order to navigate back to the last directory
-        if(strcmp(dent->d_name, ".") == 0) continue;
+        if (strcmp(dent->d_name, ".") == 0)
+            continue;
 
         char *path = calloc(256, sizeof(char));
         strcpy(path, directory);
@@ -167,20 +178,20 @@ void scan_files(State *state, char *directory) {
         char *name = calloc(256, sizeof(char));
         strcpy(name, dent->d_name);
 
-        if(dent->d_type == DT_DIR) {
+        if (dent->d_type == DT_DIR) {
             strcat(name, "/");
             DA_APPEND(state->files, ((File){name, path, true}));
-        } else if(dent->d_type == DT_REG) {
+        } else if (dent->d_type == DT_REG) {
             DA_APPEND(state->files, ((File){name, path, false}));
         }
     }
     closedir(dp);
-    qsort(state->files->data, state->files->count,
-        sizeof *state->files->data, (__compar_fn_t)&compare_name);
+    qsort(state->files->data, state->files->count, sizeof *state->files->data,
+          (__compar_fn_t)&compare_name);
 }
 
 void free_files(Files **files) {
-    for(size_t i = 0; i < (*files)->count; ++i) {
+    for (size_t i = 0; i < (*files)->count; ++i) {
         free((*files)->data[i].name);
         free((*files)->data[i].path);
     }
@@ -189,53 +200,49 @@ void free_files(Files **files) {
 }
 
 // TODO: breaks when a config is already loaded
-void load_config_from_file(State *state, Buffer *buffer, char *config_filename, char *syntax_filename) {
+void load_config_from_file(State *state, Buffer *buffer, char *config_filename,
+                           char *syntax_filename) {
     char *config_dir;
 
-    if(config_filename == NULL) {
-		if (state->env == NULL) {
-	        char *env = getenv("HOME");			
-	        if(env == NULL) CRASH("could not get HOME");			
-			state->env = env;
-		}
+    if (config_filename == NULL) {
+        if (state->env == NULL) {
+            char *env = getenv("HOME");
+            if (env == NULL)
+                CRASH("could not get HOME");
+            state->env = env;
+        }
 
         asprintf(&config_dir, "%s/.config/cano", state->env);
 
         struct stat st;
-        if(stat(config_dir, &st) == -1)
+        if (stat(config_dir, &st) == -1)
             mkdir(config_dir, 0755);
 
         if (!S_ISDIR(st.st_mode))
             CRASH("a file conflict with the config directory.");
 
-        asprintf(&config_filename, "%s/config.cano", config_dir);
+        asprintf(&config_filename, "%s/init.lua", config_dir);
 
-        char *language = strip_off_dot(buffer->filename, strlen(buffer->filename));
-        if(language != NULL) {
+        char *language =
+            strip_off_dot(buffer->filename, strlen(buffer->filename));
+        if (language != NULL) {
             asprintf(&syntax_filename, "%s/%s.cyntax", config_dir, language);
             free(language);
         }
     }
-    char **lines = calloc(2, sizeof(char*));
-    size_t lines_s = 0;
-    int err = read_file_by_lines(config_filename, &lines, &lines_s);
-    if(err == 0) {
-        for(size_t i = 0; i < lines_s; i++) {
-            size_t cmd_s = 0;
-            Command_Token *cmd = lex_command(state, view_create(lines[i], strlen(lines[i])), &cmd_s);
-            execute_command(buffer, state, cmd, cmd_s);
-            free(lines[i]);
-        }
-    }
-    free(lines);
 
-    if(syntax_filename != NULL) {
+    api_init(state, config_filename);
+
+    if (syntax_filename != NULL) {
         Color_Arr color_arr = parse_syntax_file(syntax_filename);
-        if(color_arr.arr != NULL) {
-            for(size_t i = 0; i < color_arr.arr_s; i++) {
-                init_pair(color_arr.arr[i].custom_slot, color_arr.arr[i].custom_id, state->config.background_color);
-                init_ncurses_color(color_arr.arr[i].custom_id, color_arr.arr[i].custom_r,
-                                   color_arr.arr[i].custom_g, color_arr.arr[i].custom_b);
+        if (color_arr.arr != NULL) {
+            for (size_t i = 0; i < color_arr.arr_s; i++) {
+                init_pair(color_arr.arr[i].custom_slot,
+                          color_arr.arr[i].custom_id,
+                          state->config.background_color);
+                init_ncurses_color(
+                    color_arr.arr[i].custom_id, color_arr.arr[i].custom_r,
+                    color_arr.arr[i].custom_g, color_arr.arr[i].custom_b);
             }
 
             free(color_arr.arr);
@@ -261,14 +268,18 @@ int contains_c_extension(const char *str) {
 void *check_for_errors(void *args) {
     ThreadArgs *threadArgs = (ThreadArgs *)args;
 
-    bool loop = 1; /* loop to be used later on, to make it constantly check for errors. Right now it just runs once. */
+    bool loop = 1; /* loop to be used later on, to make it constantly check for
+                      errors. Right now it just runs once. */
     while (loop) {
 
         char path[1035];
 
         /* Open the command for reading. */
         char command[1024];
-        sprintf(command, "gcc %s -o /dev/null -Wall -Wextra -Werror -std=c99 2> errors.cano && echo $? > success.cano", threadArgs->path_to_file);
+        sprintf(command,
+                "gcc %s -o /dev/null -Wall -Wextra -Werror -std=c99 2> "
+                "errors.cano && echo $? > success.cano",
+                threadArgs->path_to_file);
         FILE *fp = popen(command, "r");
         if (fp == NULL) {
             loop = 0;
@@ -285,7 +296,7 @@ void *check_for_errors(void *args) {
             WRITE_LOG("Failed to open file");
             return (void *)NULL;
         }
-        while (fgets(path, sizeof(path) -1, should_check_for_errors) != NULL) {
+        while (fgets(path, sizeof(path) - 1, should_check_for_errors) != NULL) {
             WRITE_LOG("return code: %s", path);
             if (!(strcmp(path, "0") == 0)) {
                 FILE *file_contents = fopen("errors.cano", "r");
@@ -309,7 +320,7 @@ void *check_for_errors(void *args) {
 
                 char *bufffer = malloc(filesize + 1);
 
-                while (fgets(path, sizeof(path) -1, file_contents) != NULL) {
+                while (fgets(path, sizeof(path) - 1, file_contents) != NULL) {
                     strcat(bufffer, path);
                     strcat(buffer, "\n");
                 }
@@ -327,32 +338,28 @@ void *check_for_errors(void *args) {
                 fclose(file_contents);
 
                 return (void *)return_message;
-            }
-            else {
+            } else {
                 loop = 0;
                 static char return_message[] = "No errors found";
                 return (void *)return_message;
             }
         }
-
     }
 
     return (void *)NULL;
 }
 
-
 Ncurses_Color rgb_to_ncurses(int r, int g, int b) {
 
     Ncurses_Color color = {0};
 
-    color.r = (int) ((r / 256.0) * 1000);
-    color.g = (int) ((g / 256.0) * 1000);
-    color.b = (int) ((b / 256.0) * 1000);
+    color.r = (int)((r / 256.0) * 1000);
+    color.g = (int)((g / 256.0) * 1000);
+    color.b = (int)((b / 256.0) * 1000);
     return color;
-
 }
 
 void init_ncurses_color(int id, int r, int g, int b) {
-        Ncurses_Color color = rgb_to_ncurses(r, g, b);
-        init_color(id, color.r, color.g, color.b);
+    Ncurses_Color color = rgb_to_ncurses(r, g, b);
+    init_color(id, color.r, color.g, color.b);
 }

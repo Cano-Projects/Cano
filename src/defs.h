@@ -2,61 +2,63 @@
 #define DEFS_H
 
 #include <ncurses.h>
-#include <ctype.h>
+#include <stdlib.h>
 
 #include "view.h"
 
 #define DATA_START_CAPACITY 1024
 
-#define CRASH(str)                    \
-        do {                          \
-            frontend_end();                 \
-            fprintf(stderr, str"\n"); \
-            exit(1);                  \
-        } while(0)
-
-#define ASSERT(cond, ...) \
-    do { \
-        if (!(cond)) { \
-            frontend_end();   \
-            fprintf(stderr, "%s:%d: ASSERTION FAILED: ", __FILE__, __LINE__); \
-            fprintf(stderr, __VA_ARGS__); \
-            fprintf(stderr, "\n"); \
-            exit(1); \
-        } \
+#define CRASH(str)                                                             \
+    do {                                                                       \
+        frontend_end();                                                        \
+        fprintf(stderr, str "\n");                                             \
+        exit(1);                                                               \
     } while (0)
 
-#define WRITE_LOG(message, ...)                                                         \
-    do {                                                                                \
-        FILE *file = fopen("logs/cano.log", "a");                                       \
-        if (file != NULL) {                                                             \
-            fprintf(file, "%s:%d: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__);   \
-            fclose(file);                                                               \
-        }                                                                               \
-    } while(0)
+#define ASSERT(cond, ...)                                                      \
+    do {                                                                       \
+        if (!(cond)) {                                                         \
+            frontend_end();                                                    \
+            fprintf(stderr, "%s:%d: ASSERTION FAILED: ", __FILE__, __LINE__);  \
+            fprintf(stderr, __VA_ARGS__);                                      \
+            fprintf(stderr, "\n");                                             \
+            exit(1);                                                           \
+        }                                                                      \
+    } while (0)
 
+#define WRITE_LOG(message, ...)                                                \
+    do {                                                                       \
+        FILE *file = fopen("logs/cano.log", "a");                              \
+        if (file != NULL) {                                                    \
+            fprintf(file, "%s:%d: " message "\n", __FILE__, __LINE__,          \
+                    ##__VA_ARGS__);                                            \
+            fclose(file);                                                      \
+        }                                                                      \
+    } while (0)
 
-#define DA_APPEND(da, item) do {                                                       \
-    if ((da)->count >= (da)->capacity) {                                               \
-        (da)->capacity = (da)->capacity == 0 ? DATA_START_CAPACITY : (da)->capacity*2; \
-        void *new = calloc(((da)->capacity+1), sizeof(*(da)->data));                    \
-        ASSERT(new,"outta ram");                                                       \
-        memcpy(new, (da)->data, (da)->count);                                          \
-        free((da)->data);                                                              \
-        (da)->data = new;                                                              \
-    }                                                                                  \
-    (da)->data[(da)->count++] = (item);                                                \
-} while (0)
+#define DA_APPEND(da, item)                                                    \
+    do {                                                                       \
+        if ((da)->count >= (da)->capacity) {                                   \
+            (da)->capacity = (da)->capacity == 0 ? DATA_START_CAPACITY         \
+                                                 : (da)->capacity * 2;         \
+            void *new = calloc(((da)->capacity + 1), sizeof(*(da)->data));     \
+            ASSERT(new, "outta ram");                                          \
+            memcpy(new, (da)->data, (da)->count);                              \
+            free((da)->data);                                                  \
+            (da)->data = new;                                                  \
+        }                                                                      \
+        (da)->data[(da)->count++] = (item);                                    \
+    } while (0)
 
 #define ctrl(x) ((x) & 0x1f)
 
-#define ESCAPE      27
-#define SPACE       32
-#define ENTER       10
-#define KEY_TAB     9
-#define DOWN_ARROW  258
-#define UP_ARROW    259
-#define LEFT_ARROW  260
+#define ESCAPE 27
+#define SPACE 32
+#define ENTER 10
+#define KEY_TAB 9
+#define DOWN_ARROW 258
+#define UP_ARROW 259
+#define LEFT_ARROW 260
 #define RIGHT_ARROW 261
 
 #define STARTING_ROWS_SIZE 128
@@ -96,9 +98,9 @@ typedef enum {
 } Command_Error;
 
 typedef struct {
-    const char* path_to_file;
-    const char* filename; /* maybe will get used? */
-    const char* lang;
+    const char *path_to_file;
+    const char *filename; /* maybe will get used? */
+    const char *lang;
 } ThreadArgs;
 
 typedef struct {
@@ -273,16 +275,16 @@ typedef struct State {
     Undo cur_undo;
     size_t num_of_braces; // braces that preceed the cursor
     int ch;               // current character
-	char *env;	        // home folder
+    char *env;            // home folder
 
-    char *command;        // most recent command entered by user
-    size_t command_s;     // size of command
+    char *command;    // most recent command entered by user
+    size_t command_s; // size of command
 
     Variables variables;
 
     Repeating repeating;
     Data num;
-    Leader leader;        // current leader key
+    Leader leader; // current leader key
 
     bool is_print_msg;
     char *status_bar_msg;
@@ -293,17 +295,18 @@ typedef struct State {
     size_t normal_pos;
 
     // key functions to be called on each keypress
-    void(**key_func)(Buffer *buffer, Buffer **modify_buffer, struct State *state);
+    void (**key_func)(Buffer *buffer, Buffer **modify_buffer,
+                      struct State *state);
 
     Sized_Str clipboard;
 
     // files for file explorer (ctrl+n)
-    Files* files;
+    Files *files;
     bool is_exploring;
     size_t explore_cursor;
 
     // text buffer
-    Buffer* buffer;
+    Buffer *buffer;
 
     // window sizes
     int grow;
